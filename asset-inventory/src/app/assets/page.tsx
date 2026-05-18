@@ -131,6 +131,7 @@ export default function AssetsPage() {
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [sortKey, setSortKey] = useState<keyof Asset | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
 
   useEffect(() => {
     setAssets(loadAssets());
@@ -194,6 +195,33 @@ export default function AssetsPage() {
   return (
     <main style={{ padding: 24 }}>
       <h1>Assets</h1>
+        {assetToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-6 rounded shadow-lg text-white">
+              <h2 className="text-lg font-bold mb-4">Confirm Deletion</h2>
+              <p className="mb-4">
+                Are you sure you want to delete the asset "<strong>{assetToDelete.name}</strong>"?
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setAssetToDelete(null)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    deleteAsset(assetToDelete.id);
+                    setAssetToDelete(null);
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       <div className="flex justify-between items-center mb-4">
         <span className="text-sm text-gray-200">
           Logged in as: <strong>{role.toUpperCase()}</strong>
@@ -304,7 +332,7 @@ export default function AssetsPage() {
                 {isAdmin && (
                   <td className="border px-4 py-2">
                     <button
-                      onClick={() => deleteAsset(asset.id)}
+                      onClick={() => setAssetToDelete(asset)}
                       className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
                     >
                       Delete
