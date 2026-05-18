@@ -4,6 +4,15 @@ import { getCurrentRole, logout } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { Asset } from "@/lib/assets";
 import { loadAssets, saveAssets } from "@/lib/storage";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function AddAssetForm({ onAdd }: { onAdd: (asset: Asset) => void }) {
   const [name, setName] = useState("");
@@ -32,21 +41,16 @@ function AddAssetForm({ onAdd }: { onAdd: (asset: Asset) => void }) {
         placeholder="Asset Name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="border px-3 py-2 rounded w-64"
+        className="border border-gray-300 px-3 py-2 rounded w-64 bg-white"
       />
       <input
         type="text"
         placeholder="Category"
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        className="border px-3 py-2 rounded w-64"
+        className="border border-gray-300 px-3 py-2 rounded w-64 bg-white"
       />
-      <button
-        type="submit"
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
-      >
-        Add Asset
-      </button>
+      <Button type="submit">Add Asset</Button>
     </form>
   );
 }
@@ -76,44 +80,37 @@ function EditAssetForm({
   }
 
   return (
-    <div className="border rounded p-4 mb-4 bg-gray-600">
+    <div className="border border-gray-200 rounded p-4 mb-4 bg-gray-50 text-gray-900">
       <h3 className="font-semibold mb-2">Edit Asset</h3>
-      <form onSubmit={handleSubmit} className="flex gap-2 flex-wrap">
+      <form
+        onSubmit={handleSubmit}
+        className="flex gap-2 flex-wrap items-center"
+      >
         <input
           type="text"
-          className="border px-3 py-2 rounded"
+          className="border border-gray-300 px-3 py-2 rounded bg-white"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <input
           type="text"
-          className="border px-3 py-2 rounded"
+          className="border border-gray-300 px-3 py-2 rounded bg-white"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         />
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as Asset["status"])}
-          className="border px-3 py-2 rounded hover:bg-gray-700 bg-gray-600"
+          className="border border-gray-300 px-3 py-2 rounded bg-white cursor-pointer"
         >
           <option value="Available">Available</option>
           <option value="In Use">In Use</option>
         </select>
 
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
-        >
-          Save
-        </button>
-
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-        >
+        <Button type="submit">Save</Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </form>
     </div>
   );
@@ -193,59 +190,73 @@ export default function AssetsPage() {
   });
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Assets</h1>
-        {assetToDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 p-6 rounded shadow-lg text-white">
-              <h2 className="text-lg font-bold mb-4">Confirm Deletion</h2>
-              <p className="mb-4">
-                Are you sure you want to delete the asset "<strong>{assetToDelete.name}</strong>"?
-              </p>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setAssetToDelete(null)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    deleteAsset(assetToDelete.id);
-                    setAssetToDelete(null);
-                  }}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      <div className="flex justify-between items-center mb-4">
-        <span className="text-sm text-gray-200">
+    <main
+      style={{ padding: 24 }}
+      className="text-gray-900 bg-white min-h-screen"
+    >
+      <h1 className="text-2xl font-bold mb-4">Assets</h1>
+
+      <Dialog
+        open={!!assetToDelete}
+        onOpenChange={(open) => {
+          if (!open) setAssetToDelete(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete {""}
+            <strong>{assetToDelete?.name}</strong>? This action cannot be
+            undone.
+          </p>
+
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (assetToDelete) {
+                  deleteAsset(assetToDelete.id);
+                  setAssetToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </Button>
+            <Button variant="secondary" onClick={() => setAssetToDelete(null)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="flex justify-between items-center mb-6 border-b pb-4">
+        <span className="text-sm text-gray-600">
           Logged in as: <strong>{role.toUpperCase()}</strong>
         </span>
 
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => {
             logout();
             setRole("guest");
           }}
-          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
         >
           Logout
-        </button>
+        </Button>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-4">
+      <div className="flex flex-wrap gap-4 mb-6">
         {/* Search Input */}
         <input
           type="text"
           placeholder="Search asset name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded w-64"
+          className="border border-gray-300 px-3 py-2 rounded w-64 bg-white"
         />
         {/* Status Filter */}
         <select
@@ -253,7 +264,7 @@ export default function AssetsPage() {
           onChange={(e) =>
             setStatusFilter(e.target.value as "All" | Asset["status"])
           }
-          className="border px-3 py-2 bg-gray-500  hover:bg-gray-600 rounded"
+          className="border border-gray-300 px-3 py-2 bg-white rounded cursor-pointer"
         >
           <option value="All">All Statuses</option>
           <option value="Available">Available</option>
@@ -263,7 +274,7 @@ export default function AssetsPage() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="border px-3 py-2 bg-gray-500  hover:bg-gray-600 rounded"
+          className="border border-gray-300 px-3 py-2 bg-white rounded cursor-pointer"
         >
           <option value="All">All Categories</option>
           {[...new Set(assets.map((a) => a.category))].map((category) => (
@@ -273,9 +284,11 @@ export default function AssetsPage() {
           ))}
         </select>
       </div>
+
       {filteredAssets.length === 0 && (
-        <p className="text-gray-500">No assets found.</p>
+        <p className="text-gray-500 mb-4">No assets found.</p>
       )}
+
       {editingAsset && (
         <EditAssetForm
           asset={editingAsset}
@@ -283,21 +296,22 @@ export default function AssetsPage() {
           onCancel={() => setEditingAsset(null)}
         />
       )}
+
       {isAdmin && <AddAssetForm onAdd={addAsset} />}
-      {assets.length === 0 && <p>No assets found.</p>}
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300 rounded">
-          <thead className="bg-black text-white">
+
+      <div className="overflow-x-auto mt-4">
+        <table className="min-w-full border border-gray-200 rounded bg-white">
+          <thead className="bg-gray-100 text-gray-700 border-b border-gray-200">
             <tr>
               <th
-                className="border px-4 py-2 text-left cursor-pointer select-none"
+                className="border-r border-gray-200 px-4 py-2 text-left cursor-pointer select-none"
                 onClick={() => handleSort("name")}
               >
                 Asset Name{" "}
                 {sortKey === "name" && (sortDirection === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="border px-4 py-2 text-left cursor-pointer select-none"
+                className="border-r border-gray-200 px-4 py-2 text-left cursor-pointer select-none"
                 onClick={() => handleSort("category")}
               >
                 Category{" "}
@@ -305,44 +319,55 @@ export default function AssetsPage() {
                   (sortDirection === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="border px-4 py-2 text-left cursor-pointer select-none"
+                className="border-r border-gray-200 px-4 py-2 text-left cursor-pointer select-none"
                 onClick={() => handleSort("status")}
               >
                 Status{" "}
                 {sortKey === "status" && (sortDirection === "asc" ? "▲" : "▼")}
               </th>
-              {isAdmin && (
-                <th className="border px-4 py-2 text-left">Actions</th>
-              )}
+              {isAdmin && <th className="px-4 py-2 text-left">Actions</th>}
             </tr>
           </thead>
 
           <tbody>
             {sortedAssets.map((asset) => (
-              <tr key={asset.id} className="hover:bg-gray-600">
-                <td className="border px-4 py-2 font-medium">{asset.name}</td>
-                <td className="border px-4 py-2">{asset.category}</td>
-                <td className="border px-4 py-2">
+              <tr
+                key={asset.id}
+                className="hover:bg-gray-50 border-b border-gray-100 transition-colors"
+              >
+                <td className="border-r border-gray-100 px-4 py-2 font-medium">
+                  {asset.name}
+                </td>
+                <td className="border-r border-gray-100 px-4 py-2">
+                  {asset.category}
+                </td>
+                <td className="border-r border-gray-100 px-4 py-2">
                   <span
-                    className={`px-2 py-1 rounded text-sm ${asset.status === "Available" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}
+                    className={`px-2 py-1 rounded text-sm ${
+                      asset.status === "Available"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
                   >
                     {asset.status}
                   </span>
                 </td>
                 {isAdmin && (
-                  <td className="border px-4 py-2">
-                    <button
-                      onClick={() => setAssetToDelete(asset)}
-                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                    <button
+                  <td className="px-4 py-2 flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setEditingAsset(asset)}
-                      className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 cursor-pointer ml-2"
                     >
                       Edit
-                    </button>
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setAssetToDelete(asset)}
+                    >
+                      Delete
+                    </Button>
                   </td>
                 )}
               </tr>
